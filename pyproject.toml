@@ -1,0 +1,13 @@
+[project]
+name = "deepagent-gen-ui"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "deepagents>=0.2.6",
+    "langchain-openai>=1.0.2",
+    "langgraph-cli[inmem]>=0.4.7",
+    "pandas>=2.3.3",
+    "reportlab>=4.4.4",
+]

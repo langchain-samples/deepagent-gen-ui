@@ -1,0 +1,11 @@
+{
+  "graphs": {
+    "agent": "./deepagent.py:graph"
+  },
+  "ui": {
+    "agent": "./ui.tsx"
+  },
+  "dependencies": ["."],
+  "env": ".env"
+}
+
