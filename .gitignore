@@ -35,9 +35,14 @@ build/
 # OS
 .DS_Store
 Thumbs.db
-yarn.lock
-.yarn/
-uv.lock
-.python-version
+
+# Yarn PnP (if using PnP mode, these can be ignored)
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
 .pnp.cjs
 .pnp.loader.mjs
+
+# Python version manager
+.python-version

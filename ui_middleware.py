@@ -30,7 +30,8 @@ class GenUIMiddleware(AgentMiddleware):
                         component_name,
                         {},
                         metadata={
-                            "tool_call_id": tool_call["id"]
+                            "tool_call_id": tool_call["id"],
+                            "message_id": last_message.id
                         },
                         message=last_message
                     )

@@ -1,17 +1,42 @@
 # DeepAgent Gen UI Example
 
-A demonstration of LangGraph's Generative UI capabilities with a DeepAgent that generates CSV and PDF reports.
+A demonstration of [LangGraph's Generative UI capabilities](https://docs.langchain.com/langsmith/generative-ui-react) with a DeepAgent that generates CSV and PDF reports. This example shows how to build an AI agent that not only processes data but also renders rich, interactive UI components dynamically.
 
-## Features
+> **📚 Based on:** [LangChain Generative UI React Documentation](https://docs.langchain.com/langsmith/generative-ui-react)
+
+## ✨ Features
 
 - 📊 **CSV Report Generation** with interactive table preview
 - 📄 **PDF Report Generation** with inline preview
-- 🎨 **Professional UI** with Tailwind CSS styling
-- 🌓 **Dark mode** support
+- 🎨 **Professional UI** with inline styles for consistent rendering
 - 🔄 **Research Subagent** pattern - separates data fetching from UI generation
-- ✨ **GenUI Middleware** for automatic UI component rendering
+- ⚡ **GenUI Middleware** for automatic UI component rendering
+- 🏗️ **DeepAgent Architecture** - supervisor agent coordinating specialized subagents
 
-## Architecture
+## 🎬 Demo
+
+When you ask: *"Generate a CSV report on user analytics"*
+
+The agent will:
+1. Delegate to the research subagent to fetch data
+2. Generate a CSV report with the data
+3. Automatically render an interactive table in the UI with download button
+
+The same flow works for PDF reports with inline preview!
+
+## 🌟 What Makes This Example Special
+
+This example demonstrates several advanced patterns:
+
+1. **GenUI Middleware Pattern**: Automatically intercepts tool calls and pushes UI messages without cluttering your agent logic
+2. **Subagent Delegation**: Main agent delegates data fetching to a specialized subagent, maintaining clean separation of concerns
+3. **Tool Result Integration**: UI components read tool execution results via `useStreamContext()` metadata, not props
+4. **Professional UI Components**: Self-contained React components with inline styles for consistent rendering across different frontends
+5. **Base64 Data Transfer**: Handles binary data (PDFs) and text data (CSVs) seamlessly through base64 encoding
+
+This pattern can be extended to any tool that generates visual outputs: charts, diagrams, forms, 3D visualizations, etc.
+
+## 🏗️ Architecture
 
 ```
 Main Agent (deepagent.py)
@@ -22,9 +47,16 @@ Main Agent (deepagent.py)
         └── Tools: get_sales_data, get_user_analytics
 ```
 
-The main agent delegates data fetching to a research subagent, then uses the data to generate reports that are automatically displayed in the UI.
+**Key Pattern:** The main agent delegates data fetching to a research subagent, then uses the data to generate reports. The GenUI middleware automatically detects report generation tools and pushes UI messages to render React components in the frontend.
 
-## Installation
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+ (for UI dependencies)
+- LangGraph CLI or LangGraph Studio
+- An Anthropic or OpenAI API key
 
 ### 1. Install Python Dependencies
 
@@ -54,50 +86,38 @@ ANTHROPIC_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here
 ```
 
-## Usage
+### 4. Run with LangGraph Studio (Recommended)
 
-### Running with LangGraph Studio
-
-1. Open LangGraph Studio
+1. Open [LangGraph Studio](https://docs.langchain.com/langsmith/use-studio)
 2. Select this directory as your project
 3. The graph will be available as `agent`
-4. Try: "Generate a CSV report on user analytics"
+4. Try: *"Generate a CSV report on user analytics"*
 
-### Running with LangGraph CLI
-
-```bash
-# Start the server
-langgraph dev
-
-# Or specify the graph
-langgraph dev --graph agent
-```
-
-### Testing Locally
+### 5. Or Run with LangGraph CLI
 
 ```bash
-# Start the development server
 langgraph dev
-
-# In another terminal, test the agent
-curl -X POST http://localhost:2024/runs/stream \
-  -H "Content-Type: application/json" \
-  -d '{
-    "assistant_id": "agent",
-    "input": {
-      "messages": [{"role": "user", "content": "Generate a CSV on sales data"}]
-    }
-  }'
 ```
 
-## Example Queries
+Then connect with a frontend like [Deep Agents UI](https://github.com/langchain-ai/deep-agents-ui) or build your own using `@langchain/langgraph-sdk`.
+
+## 💬 Example Queries
 
 Try these prompts to see the GenUI in action:
 
-- "Generate a CSV report on user analytics"
-- "Create a PDF report for sales data"
-- "Show me user analytics for this month in a CSV"
-- "Generate a sales report in PDF format"
+- *"Generate a CSV report on user analytics"*
+- *"Create a PDF report for sales data"*
+- *"Show me user analytics for this month in a CSV"*
+- *"Generate a sales report in PDF format"*
+
+## 🖥️ Frontend Options
+
+This example requires a frontend to visualize the GenUI components. You have a few options:
+
+1. **[Deep Agents UI](https://github.com/langchain-ai/deep-agents-ui/tree/main)** - Pre-built chat interface
+2. **Custom Frontend** - Build your own using `@langchain/langgraph-sdk` and `useStream()` hook
+
+For custom frontends, see the [LangChain GenUI React docs](https://docs.langchain.com/langsmith/generative-ui-react).
 
 ## Project Structure
 
@@ -266,11 +286,16 @@ Make sure your frontend (LangGraph Studio or custom UI) processes Tailwind CSS. 
 - `@langchain/langgraph-sdk@^0.1.0` - LangGraph React hooks
 - `tailwindcss@^4.0.0` - Styling
 
-## Credits
+## 📚 Learn More
 
-This example is based on patterns from the LangChain team's executive-ai-assistant project, demonstrating best practices for GenUI with DeepAgents.
+- [LangGraph Generative UI React Documentation](https://docs.langchain.com/langsmith/generative-ui-react)
+- [DeepAgents Documentation](https://github.com/langchain-ai/deep-agents)
 
-## License
+## 🤝 Contributing
+
+This is an example project demonstrating GenUI patterns. Feel free to fork and adapt for your use cases!
+
+## 📄 License
 
 MIT
 

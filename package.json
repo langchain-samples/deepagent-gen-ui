@@ -1,6 +1,7 @@
 {
   "name": "deepagent-gen-ui",
   "version": "1.0.0",
+  "description": "LangGraph Generative UI example with DeepAgent - CSV and PDF report generation with interactive previews",
   "type": "module",
   "dependencies": {
     "@langchain/langgraph-sdk": "^0.1.0",

@@ -9,6 +9,8 @@ const styles = {
     backgroundColor: "#ffffff",
     padding: "20px",
     boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+    maxWidth: "100%",
+    overflow: "scroll",
   },
   successHeader: {
     display: "flex",
@@ -24,22 +26,26 @@ const styles = {
     flexWrap: "wrap" as const,
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: "16px",
+    gap: "12px",
     marginBottom: "16px",
   },
   iconBox: {
     borderRadius: "8px",
-    backgroundColor: "#dcfce7",
+    backgroundColor: "#37b060",
     padding: "8px",
   },
   fileName: {
-    fontSize: "16px",
+    fontSize: "15px",
     fontWeight: "600",
     color: "#111827",
     marginBottom: "4px",
+    overflow: "hidden" as const,
+    textOverflow: "ellipsis" as const,
+    whiteSpace: "nowrap" as const,
+    maxWidth: "300px",
   },
   fileInfo: {
-    fontSize: "14px",
+    fontSize: "13px",
     color: "#6b7280",
   },
   button: {
@@ -49,8 +55,8 @@ const styles = {
     borderRadius: "6px",
     backgroundColor: "#2563eb",
     color: "#ffffff",
-    padding: "8px 16px",
-    fontSize: "14px",
+    padding: "8px 12px",
+    fontSize: "13px",
     fontWeight: "500",
     border: "none",
     cursor: "pointer",
@@ -58,6 +64,7 @@ const styles = {
     transition: "background-color 0.15s",
     height: "36px",
     maxWidth: "fit-content",
+    whiteSpace: "nowrap" as const,
   },
   secondaryButton: {
     display: "inline-flex",
@@ -66,8 +73,8 @@ const styles = {
     borderRadius: "6px",
     backgroundColor: "#ffffff",
     color: "#374151",
-    padding: "8px 16px",
-    fontSize: "14px",
+    padding: "8px 12px",
+    fontSize: "13px",
     fontWeight: "500",
     border: "1px solid #d1d5db",
     cursor: "pointer",
@@ -75,28 +82,35 @@ const styles = {
     transition: "background-color 0.15s",
     height: "36px",
     maxWidth: "fit-content",
+    whiteSpace: "nowrap" as const,
   },
   table: {
     minWidth: "100%",
     borderCollapse: "collapse" as const,
+    tableLayout: "fixed" as const,
   },
   th: {
-    padding: "12px 16px",
+    padding: "8px 12px",
     textAlign: "left" as const,
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: "600",
     textTransform: "uppercase" as const,
     letterSpacing: "0.05em",
     color: "#374151",
     backgroundColor: "#f9fafb",
     borderBottom: "1px solid #e5e7eb",
+    overflow: "hidden" as const,
+    textOverflow: "ellipsis" as const,
+    whiteSpace: "nowrap" as const,
   },
   td: {
-    padding: "12px 16px",
-    fontSize: "14px",
+    padding: "8px 12px",
+    fontSize: "13px",
     color: "#111827",
-    whiteSpace: "nowrap" as const,
     borderBottom: "1px solid #e5e7eb",
+    overflow: "hidden" as const,
+    textOverflow: "ellipsis" as const,
+    maxWidth: "200px",
   },
   pendingContainer: {
     borderRadius: "8px",
@@ -277,7 +291,7 @@ const CSVPreview = () => {
             <TableIcon />
           </div>
           <div>
-            <h3 style={styles.fileName}>{toolResult.filename}</h3>
+            <h3 style={styles.fileName} title={toolResult.filename}>{toolResult.filename}</h3>
             <p style={styles.fileInfo}>
               {toolResult.rows || csvData.rows.length} rows • {csvData.headers.length} columns
             </p>
@@ -297,12 +311,12 @@ const CSVPreview = () => {
       {csvData.headers.length > 0 && (
         <div style={{marginTop: "12px"}}>
           <div style={{overflow: "hidden", borderRadius: "8px", border: "1px solid #e5e7eb"}}>
-            <div style={{overflowX: "auto"}}>
+            <div style={{overflowX: "auto", maxWidth: "100%"}}>
               <table style={styles.table}>
                 <thead>
                   <tr>
                     {csvData.headers.map((header, idx) => (
-                      <th key={idx} style={styles.th}>{header}</th>
+                      <th key={idx} style={styles.th} title={header}>{header}</th>
                     ))}
                   </tr>
                 </thead>
@@ -310,7 +324,7 @@ const CSVPreview = () => {
                   {displayRows.map((row, rowIdx) => (
                     <tr key={rowIdx}>
                       {row.map((cell, cellIdx) => (
-                        <td key={cellIdx} style={styles.td}>{cell}</td>
+                        <td key={cellIdx} style={styles.td} title={cell}>{cell}</td>
                       ))}
                     </tr>
                   ))}
@@ -441,11 +455,11 @@ const PDFPreview = () => {
 
       <div style={styles.fileInfoSection}>
         <div style={{display: "flex", alignItems: "flex-start", gap: "12px"}}>
-          <div style={{...styles.iconBox, backgroundColor: "#fee2e2"}}>
+          <div style={{...styles.iconBox, backgroundColor: "#37b060"}}>
             <FileTextIcon />
           </div>
           <div>
-            <h3 style={styles.fileName}>{toolResult.filename}</h3>
+            <h3 style={styles.fileName} title={toolResult.filename}>{toolResult.filename}</h3>
             <p style={styles.fileInfo}>
               {toolResult.rows && `${toolResult.rows} rows`}
               {toolResult.pages && ` • ${toolResult.pages} page${toolResult.pages > 1 ? "s" : ""}`}
