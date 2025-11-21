@@ -206,27 +206,80 @@ className="bg-purple-600 hover:bg-purple-700"  // Custom
 
 ## Key Concepts
 
-### GenUI Middleware Pattern
+### GenUI Middleware Pattern - How It Works
 
-The middleware pushes UI messages when certain tools are called:
+When you look at the middleware code, you'll see:
 
 ```python
-def after_model(self, state: UIState, runtime: Runtime):
-    # When the model calls a tool, push a UI message
-    if tool_call["name"] in self.tool_to_genui_map:
-        push_ui_message(component_name, {}, metadata={...})
+push_ui_message(
+    component_name,
+    {},  # <-- Empty props! Why?
+    metadata={
+        "tool_call_id": tool_call["id"],
+        "message_id": last_message.id
+    },
+    message=last_message
+)
 ```
+
+**Why empty props?** Because `after_model()` runs **after the LLM decides to call a tool, but before the tool executes**. The tool result doesn't exist yet!
+
+#### The Complete Flow
+
+```
+1. User: "Generate CSV report"
+   ↓
+2. LLM: Decides to call generate_csv_report(data=...)
+   ↓
+3. Middleware (after_model): 
+   - Detects the tool call
+   - Pushes UI message: csv_preview with {} empty props
+   - Includes metadata linking tool_call_id
+   ↓
+4. Frontend: 
+   - Renders CSVPreview component immediately
+   - Shows "pending" state (spinner)
+   ↓
+5. Tool Executes:
+   - generate_csv_report() returns {"data": "...", "filename": "..."}
+   ↓
+6. Frontend Updates Automatically:
+   - useStreamContext() receives tool result via metadata link
+   - CSVPreview re-renders with actual data
+   - Shows interactive table with download button
+```
+
+#### Why This Design
+
+1. **Immediate Feedback**: UI renders instantly when tool is called, showing loading state
+2. **Separation of Concerns**: Middleware doesn't need to know about tool results
+3. **Automatic Updates**: LangGraph framework handles linking tool results to UI via `tool_call_id`
+4. **Stateless Middleware**: No need to track execution or store results
+5. **Flexible Data Flow**: React components parse tool results however they want
+
+#### The Magic: Metadata Linking
+
+The `metadata` passed to `push_ui_message` tells LangGraph:
+
+> "When the tool call with this ID completes, send its result to this UI component"
+
+The framework handles all the wiring automatically! The React component just reads from `useStreamContext()` and gets the result when it's ready.
 
 ### React Components with useStreamContext
 
-Components automatically receive tool metadata:
+Components don't use props - they read tool results from stream context:
 
 ```typescript
 const context = useStreamContext();
 const meta = context?.meta as any;
-const result = meta?.result;  // Tool execution result
+const result = meta?.result;  // Tool execution result (arrives after tool runs)
 const status = meta?.status;  // pending/completed/error
 ```
+
+The component lifecycle:
+1. **Initial render**: `status: "pending"`, `result: null` → Show spinner
+2. **Tool completes**: `status: "completed"`, `result: {...}` → Parse and display data
+3. **Tool fails**: `status: "error"` → Show error message
 
 ### Tool Result Format
 
