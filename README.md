@@ -86,14 +86,7 @@ ANTHROPIC_API_KEY=your_key_here
 OPENAI_API_KEY=your_key_here
 ```
 
-### 4. Run with LangGraph Studio (Recommended)
-
-1. Open [LangGraph Studio](https://docs.langchain.com/langsmith/use-studio)
-2. Select this directory as your project
-3. The graph will be available as `agent`
-4. Try: *"Generate a CSV report on user analytics"*
-
-### 5. Or Run with LangGraph CLI
+### 4. Or Run with LangGraph CLI
 
 ```bash
 langgraph dev
