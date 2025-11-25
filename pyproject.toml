@@ -10,4 +10,5 @@ dependencies = [
     "langgraph-cli[inmem]>=0.4.7",
     "pandas>=2.3.3",
     "reportlab>=4.4.4",
+    "matplotlib>=3.8.0",
 ]

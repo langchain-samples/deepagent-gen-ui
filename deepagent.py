@@ -10,6 +10,10 @@ import base64
 import io
 from datetime import datetime
 
+import matplotlib
+matplotlib.use('Agg')  # Use non-GUI backend
+import matplotlib.pyplot as plt
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -572,6 +576,121 @@ def _format_inline_text(text: str) -> str:
     
     return text
 
+
+@tool
+def generate_pie_chart(
+    data: dict,
+    chart_title: str = "Distribution Chart",
+    colors: list = None
+) -> dict:
+    """
+    Generate a professional pie chart visualization and display it in the UI.
+    
+    Args:
+        data: Dictionary with labels as keys and numeric values as values.
+              Example: {"Product A": 150, "Product B": 230, "Product C": 95}
+        chart_title: Title for the chart (displayed above the pie chart)
+        colors: Optional list of hex color codes for the pie slices.
+                If not provided, uses a modern color palette.
+    
+    Returns:
+        Dictionary with PNG image data (base64 encoded), filename, and metadata.
+    """
+    if not data:
+        raise ValueError("Data dictionary cannot be empty")
+    
+    # Validate that all values are numeric
+    for key, value in data.items():
+        if not isinstance(value, (int, float)):
+            try:
+                data[key] = float(value)
+            except (ValueError, TypeError):
+                raise ValueError(f"All values must be numeric. Got {type(value)} for '{key}'")
+    
+    # Default modern color palette
+    if colors is None:
+        colors = [
+            '#2563eb',  # Blue
+            '#059669',  # Green
+            '#7c3aed',  # Purple
+            '#dc2626',  # Red
+            '#f59e0b',  # Amber
+            '#06b6d4',  # Cyan
+            '#ec4899',  # Pink
+            '#84cc16',  # Lime
+        ]
+    
+    # Create figure and axis
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=100)
+    
+    # Extract labels and values
+    labels = list(data.keys())
+    values = list(data.values())
+    
+    # Calculate percentages
+    total = sum(values)
+    percentages = [(v / total * 100) for v in values]
+    
+    # Create pie chart with modern styling
+    wedges, texts, autotexts = ax.pie(
+        values,
+        labels=labels,
+        colors=colors[:len(labels)],
+        autopct='%1.1f%%',
+        startangle=90,
+        pctdistance=0.85,
+        textprops={'fontsize': 10, 'weight': 'bold'}
+    )
+    
+    # Improve text styling
+    for text in texts:
+        text.set_fontsize(11)
+        text.set_weight('bold')
+    
+    for autotext in autotexts:
+        autotext.set_color('white')
+        autotext.set_fontsize(10)
+        autotext.set_weight('bold')
+    
+    # Add title
+    ax.set_title(chart_title, fontsize=16, weight='bold', pad=20)
+    
+    # Equal aspect ratio ensures circular pie
+    ax.axis('equal')
+    
+    # Add legend with values
+    legend_labels = [f'{label}: {value:,.0f}' for label, value in zip(labels, values)]
+    ax.legend(
+        legend_labels,
+        loc='center left',
+        bbox_to_anchor=(1, 0.5),
+        frameon=False,
+        fontsize=10
+    )
+    
+    # Adjust layout to prevent label cutoff
+    plt.tight_layout()
+    
+    # Save to buffer
+    img_buffer = io.BytesIO()
+    plt.savefig(img_buffer, format='png', bbox_inches='tight', dpi=100, facecolor='white')
+    plt.close(fig)
+    
+    # Encode to base64
+    img_buffer.seek(0)
+    img_base64 = base64.b64encode(img_buffer.read()).decode()
+    
+    # Generate filename
+    filename = f"{chart_title.replace(' ', '_').lower()}_{datetime.now().strftime('%Y%m%d_%H%M')}.png"
+    
+    return {
+        "data": img_base64,
+        "filename": filename,
+        "total_value": total,
+        "num_slices": len(labels),
+        "labels": labels
+    }
+
 # =============================================================================
 # SUPERVISOR AGENT
 # =============================================================================
@@ -580,29 +699,34 @@ def _format_inline_text(text: str) -> str:
 genui_middleware = GenUIMiddleware(
     tool_to_genui_map={
         "generate_csv_report": {"component_name": "csv_preview"},
-        "generate_pdf_report": {"component_name": "pdf_preview"}
+        "generate_pdf_report": {"component_name": "pdf_preview"},
+        "generate_pie_chart": {"component_name": "pie_chart_preview"}
     }
 )
 
 graph = create_deep_agent(
     model="anthropic:claude-haiku-4-5",
-    tools=[generate_csv_report, generate_pdf_report],
+    tools=[generate_csv_report, generate_pdf_report, generate_pie_chart],
     subagents=[research_subagent],
     middleware=[genui_middleware],
-    system_prompt="""You are a helpful reporting assistant that generates CSV and PDF reports for users. ALWAYS use your to-do list to track your tasks.
+    system_prompt="""You are a helpful reporting assistant that generates CSV reports, PDF reports, and pie charts for users. ALWAYS use your to-do list to track your tasks.
 
 You can:
 - Delegate to the research-specialist subagent to retrieve sales data and user analytics
-- Before actually using the generate_csv_report() or generate_pdf_report() tools, you should first create a file in your file system.
+- Before actually using the generate_csv_report(), generate_pdf_report(), or generate_pie_chart() tools, you should first create a file in your file system.
 - Generate CSV reports with tabular data (viewable in an interactive table)
 - Generate PDF reports with formatted tables (with preview and download)
+- Generate pie charts for visualizing data distributions (interactive preview with download)
 
-When a user asks for a report:
+When a user asks for a report or visualization:
 1. Determine what type of data they need (sales, analytics, etc.)
 2. Delegate to the research-specialist subagent to fetch the data
-3. Before actually using the generate_csv_report() or generate_pdf_report() tools, you should first create a file in your file system.
-4. Once you receive the data from the subagent, use generate_csv_report() or generate_pdf_report() with the data
-5. The report will automatically display with preview and download options in the UI. 
+3. Before actually using the generate_csv_report(), generate_pdf_report(), or generate_pie_chart() tools, you should first create a file in your file system.
+4. Once you receive the data from the subagent, choose the appropriate visualization:
+   - Use generate_csv_report() for tabular data export
+   - Use generate_pdf_report() for detailed formatted reports
+   - Use generate_pie_chart() for distribution/proportion visualizations (great for category breakdowns, market share, etc.)
+5. The report or chart will automatically display with preview and download options in the UI. 
 
-Be conversational and helpful. When the report is generated, let the user know what's included and highlight any interesting insights from the data."""
+Be conversational and helpful. When the report or chart is generated, let the user know what's included and highlight any interesting insights from the data."""
 )

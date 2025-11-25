@@ -531,7 +531,151 @@ const PDFPreview = () => {
   );
 };
 
+// Pie Chart Preview Component
+const PieChartPreview = () => {
+  const context = useStreamContext();
+  
+  const meta = context?.meta as any;
+  const result = meta?.result;
+  const status = meta?.status || "pending";
+
+  const toolResult = useMemo(() => {
+    if (!result) return null;
+    try {
+      return JSON.parse(result);
+    } catch (error) {
+      return null;
+    }
+  }, [result]);
+
+  const handleDownload = () => {
+    if (!toolResult?.data) return;
+    try {
+      const decoded = atob(toolResult.data);
+      const bytes = new Uint8Array(decoded.length);
+      for (let i = 0; i < decoded.length; i++) {
+        bytes[i] = decoded.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: "image/png" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = toolResult.filename || "chart.png";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("[PieChartPreview] Failed to download chart:", error);
+    }
+  };
+
+  const imageUrl = useMemo(() => {
+    if (!toolResult?.data) return null;
+    try {
+      return `data:image/png;base64,${toolResult.data}`;
+    } catch (error) {
+      return null;
+    }
+  }, [toolResult]);
+
+  if (status === "pending") {
+    return (
+      <div style={styles.pendingContainer}>
+        <div style={{display: "flex", alignItems: "center", gap: "12px", color: "#1d4ed8"}}>
+          <SpinnerIcon />
+          <span style={{fontSize: "14px", fontWeight: "500"}}>Generating pie chart...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <div style={styles.errorContainer}>
+        <div style={{display: "flex", alignItems: "center", gap: "12px", color: "#b91c1c"}}>
+          <AlertIcon />
+          <span style={{fontSize: "14px", fontWeight: "500"}}>Failed to generate pie chart</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!toolResult) {
+    return (
+      <div style={{...styles.pendingContainer, borderColor: "#fcd34d", backgroundColor: "#fef3c7"}}>
+        <div style={{fontSize: "14px", color: "#92400e"}}>Waiting for chart data...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.successHeader}>
+        <CheckIcon />
+        <span>Pie Chart Generated</span>
+      </div>
+
+      <div style={styles.fileInfoSection}>
+        <div style={{display: "flex", alignItems: "flex-start", gap: "12px"}}>
+          <div style={{...styles.iconBox, backgroundColor: "#37b060"}}>
+            <TableIcon />
+          </div>
+          <div>
+            <h3 style={styles.fileName} title={toolResult.filename}>{toolResult.filename}</h3>
+            <p style={styles.fileInfo}>
+              {toolResult.num_slices} slices
+              {toolResult.total_value && ` • Total: ${toolResult.total_value.toLocaleString()}`}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleDownload}
+          style={styles.button}
+          onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#1d4ed8"}
+          onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#2563eb"}
+        >
+          <DownloadIcon />
+          Download PNG
+        </button>
+      </div>
+
+      {imageUrl && (
+        <div style={{marginTop: "16px", overflow: "hidden", borderRadius: "8px", border: "1px solid #e5e7eb", backgroundColor: "#ffffff"}}>
+          <img
+            src={imageUrl}
+            alt="Pie Chart"
+            style={{width: "100%", height: "auto", display: "block"}}
+          />
+        </div>
+      )}
+
+      {!imageUrl && (
+        <div style={{...styles.errorContainer, marginTop: "16px"}}>
+          <div style={{display: "flex", alignItems: "flex-start", gap: "12px", fontSize: "14px", color: "#b91c1c"}}>
+            <AlertIcon />
+            <div>
+              <p style={{fontWeight: "500", margin: 0}}>Failed to load chart image</p>
+              <p style={{marginTop: "4px", color: "#dc2626"}}>
+                Please try downloading the file instead.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 export default {
   csv_preview: CSVPreview,
   pdf_preview: PDFPreview,
+  pie_chart_preview: PieChartPreview,
 };
